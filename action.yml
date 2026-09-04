@@ -42,9 +42,9 @@ outputs:
   grant-id:
     description: 'Synky run grant id'
   role-arn:
-    description: 'Leased apply role ARN to assume for terraform apply'
+    description: 'Same JIT run role ARN as plan-grant (mutate policies now attached)'
   apply-role-arn:
-    description: 'Same as role-arn (leased apply role)'
+    description: 'Same as role-arn'
   expires-at:
     description: 'Hard expiry of this grant (ISO 8601)'
   status:

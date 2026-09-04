@@ -21933,7 +21933,7 @@ async function run() {
   core3.setOutput("status", grant.status);
   core3.setOutput("granted-action-count", String(grant.grantedActions.length));
   core3.info(
-    `Synky granted ${grant.grantedActions.length} action(s) on ${grant.roleArn} until ${grant.expiresAt}. Assume that apply role for terraform apply. The grant is revoked when this job ends. For applies longer than a few minutes, set AWS_WEB_IDENTITY_TOKEN_FILE so the AWS provider can refresh the OIDC session (see synky-action README).`
+    `Synky granted ${grant.grantedActions.length} action(s) on ${grant.roleArn} until ${grant.expiresAt}. Keep using the same AWS credentials session for terraform apply \u2014 do not re-assume. The grant is revoked when this job ends. For applies longer than a few minutes, set AWS_WEB_IDENTITY_TOKEN_FILE so the AWS provider can refresh the OIDC session (see synky-action README).`
   );
 }
 run().catch((error) => {
