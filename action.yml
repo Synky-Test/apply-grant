@@ -1,0 +1,59 @@
+name: 'Synky apply grant'
+description: 'Exchanges a Terraform plan for a time-boxed AWS permission grant'
+author: 'Synky'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  api-url:
+    description: 'Synky API base URL, e.g. https://api.synky.dev'
+    required: true
+  grant-id:
+    description: 'Grant id from synky/plan-grant'
+    required: true
+  plan:
+    description: >-
+      Path to (or raw contents of) 'terraform show -json <planfile>' output.
+      Uploaded as text; Synky parses and validates the plan server-side.
+    required: true
+  oidc-audience:
+    description: 'Audience for the GitHub OIDC token. Must match the Synky broker.'
+    required: false
+    default: 'synky'
+  wait-for-approval:
+    description: 'Wait for a reviewer when the plan deletes protected resources'
+    required: false
+    default: 'true'
+  approval-timeout-minutes:
+    description: 'How long to wait for approval before failing the job'
+    required: false
+    default: '60'
+  poll-interval-seconds:
+    description: 'Polling interval while waiting for approval'
+    required: false
+    default: '15'
+  lease-minutes:
+    description: 'Extend the grant by this many minutes for long applies (0 disables)'
+    required: false
+    default: '0'
+
+outputs:
+  grant-id:
+    description: 'Synky run grant id'
+  role-arn:
+    description: 'Leased apply role ARN to assume for terraform apply'
+  apply-role-arn:
+    description: 'Same as role-arn (leased apply role)'
+  expires-at:
+    description: 'Hard expiry of this grant (ISO 8601)'
+  status:
+    description: 'Grant status after the request'
+  granted-action-count:
+    description: 'Number of IAM actions granted for this apply'
+
+runs:
+  using: 'node20'
+  main: 'dist/main.js'
+  post: 'dist/post.js'
+  post-if: 'always()'
