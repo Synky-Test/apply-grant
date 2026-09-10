@@ -21867,6 +21867,25 @@ function brokerOptions() {
   return { apiUrl, audience };
 }
 
+// src/userFacingError.ts
+var INTERNAL_DENIAL_CODES = /* @__PURE__ */ new Set(["apply_failed"]);
+function denialFailureMessage(denialReason) {
+  const reason = (denialReason ?? "").trim();
+  if (!reason || INTERNAL_DENIAL_CODES.has(reason) || reason.startsWith("apply_failed:")) {
+    return "Synky could not complete this deploy due to a server error. Try again or contact Synky support.";
+  }
+  if (reason.includes("An error occurred") || reason.includes("AccessDenied")) {
+    return "Synky could not complete this deploy due to a server error. Try again or contact Synky support.";
+  }
+  return `Synky denied this deploy: ${reason}`;
+}
+function brokerFailureMessage(error, verb) {
+  if (error.status >= 500 || error.status === 0) {
+    return `Synky could not ${verb} due to a server error. Try again or contact Synky support.`;
+  }
+  return `Synky could not ${verb} (${error.status}): ${error.message}`;
+}
+
 // src/apply-grant/main.ts
 var sleep2 = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 async function waitForApproval(options, grant, timeoutMinutes, pollSeconds) {
@@ -21883,9 +21902,7 @@ async function waitForApproval(options, grant, timeoutMinutes, pollSeconds) {
       return current;
     }
     if (current.status === DENIED) {
-      throw new Error(
-        `Synky denied this deploy: ${current.denialReason ?? "rejected by a reviewer"}`
-      );
+      throw new Error(denialFailureMessage(current.denialReason));
     }
     if (current.status === RELEASED || current.status === EXPIRED) {
       throw new Error(`This run grant is ${current.status}; re-run the workflow.`);
@@ -21938,7 +21955,7 @@ async function run() {
 }
 run().catch((error) => {
   if (error instanceof BrokerError) {
-    core3.setFailed(`Synky could not grant this apply (${error.status}): ${error.message}`);
+    core3.setFailed(brokerFailureMessage(error, "grant this apply"));
     return;
   }
   core3.setFailed(error instanceof Error ? error.message : String(error));
